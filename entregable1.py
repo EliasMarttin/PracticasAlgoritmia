@@ -54,13 +54,17 @@ def read_data(f: TextIO) -> tuple[UndirectedGraph[TVertex], int, int]:
 def process(lab: UndirectedGraph[TVertex], rows: int, cols: int) -> tuple[Optional[TEdge], int, int]:
     v_inicial = (0, 0)
     v_final = (rows-1, cols-1)
-    edges = bf_edge_traverserPabajo(lab, v_inicial)
-    edges2 = bf_edge_traverserParriba(lab, v_final)
+    for a in bf_edge_traverserParriba(lab, v_final):
+        print(a)
+    print("Aqui empieza pabajo")
+    for b in bf_edge_traverserPabajo(lab, v_inicial):
+        print(b)
+    edges =bf_edge_traverserPabajo(lab, v_inicial)
     path = shortest_path.path_recover(edges, v_final)
-    path2 = shortest_path.path_recover(edges2, v_inicial)
-    target = len(path)
+    a = sentinel(path)
+    print(a)
 
-    return path2, len(path)-1, len(path)-1
+    return None, 0, 0
 
 def bf_edge_traverserPabajo(graph: IGraph[TVertex], v_initial: TVertex) -> Iterator[TEdge]:
 
@@ -72,7 +76,7 @@ def bf_edge_traverserPabajo(graph: IGraph[TVertex], v_initial: TVertex) -> Itera
     while len(queue) > 0:
         u, v = queue.pop()
         z = mapitaPabajo[v]
-        yield u, v
+        yield u, v,mapitaPabajo[v]
         for suc in graph.succs(v):
             mapitaPabajo[suc] = mapitaPabajo[v] + 1
             if suc not in seen:
@@ -82,30 +86,55 @@ def bf_edge_traverserParriba(graph: IGraph[TVertex], v_initial: TVertex) -> Iter
 
     queue = Fifo()
     seen = set()
-    mapitaPabajo[v_initial] = 0
     queue.push((v_initial, v_initial))
+    mapitaParriba[v_initial] = 0
     seen.add(v_initial)
     while len(queue) > 0:
         u, v = queue.pop()
-        z = mapitaPabajo[v]
-        print(u, v, z)
-        yield u, v
+        z = mapitaParriba[v]
+        yield u, v, mapitaParriba[v]
         for suc in graph.succs(v):
             mapitaParriba[suc] = mapitaParriba[v] + 1
             if suc not in seen:
                 queue.push((v, suc))
                 seen.add(suc)
-def sentinel(graph: IGraph[TVertex], v_initial: TVertex) -> Optional [TEdge]:
-    # Esto es lo que tiene que buscar el mejor camino.
-    #primero tien que recorrernos el camino desde abajo?
 
 
-    return None
+
+
+def sentinel(path: list[TVertex]) -> Optional [TEdge]:
+    pathSize = len(path)
+    resultado = TVertex
+    mejorArista = ((0,0),(0,0)) #---> TEdge = ((1,2),(1,3)) Esto es el resultado si es que es la mejor arista de todas
+
+    n = len(path)
+    for r,c in path:
+        # arriba ---> (r,c) > (r,c+1)
+       if((mapitaPabajo[r,c+1]<pathSize)):
+           mejorArista = ((r,c),(r,c+1))
+           print("Esta es la arista buena /de momento")
+        # derecha --->(r,c) > (r+1,c)
+       if ((mapitaPabajo[r+1, c] < pathSize)):
+           mejorArista = ((r,c),(r+1, c))
+           print("Esta es la arista buena /de momento")
+        # abajo ---> (r,c) > (r,c-1)
+       if ((mapitaPabajo[r, c - 1] < pathSize)):
+           mejorArista = ((r,c),(r, c - 1))
+           print("Esta es la arista buena /de momento")
+        # izquierda --> (r,c) > (r-1,c)
+       if ((mapitaPabajo[r -1, c ] < pathSize)):
+           mejorArista = ((r,c),(r -1, c))
+           print("Esta es la arista buena /de momento")
+
+
+    return mejorArista
+
 
 
 
 
 def show_results(edge_to_add: Optional[TEdge], length_before: int, length_after: int):
+  #Esto se tiene que cambiar.
    print("NO VALID WALL")
    print(length_before)
    print(length_after)
