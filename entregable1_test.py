@@ -5,7 +5,7 @@ from traceback import print_tb
 from typing import Union, Optional
 from contextlib import redirect_stdout
 
-from entregable1 import read_data, process, show_results, Edge, NO_VALID_WALL
+from entregable1 import read_data, process, show_results, TEdge, NO_VALID_WALL
 
 def run(cmd: str) -> Union[tuple[list[str], list[str]], str]:
     try:
@@ -18,7 +18,7 @@ def run(cmd: str) -> Union[tuple[list[str], list[str]], str]:
     except Exception as e:
         return f"ERROR: {e}"
 
-def get_lines_and_solution(filename: str) -> tuple[list[str], tuple[Optional[Edge], int, int]]:
+def get_lines_and_solution(filename: str) -> tuple[list[str], tuple[Optional[TEdge], int, int]]:
     with open(filename) as f:
         sol_lines = [line.strip() for line in f.readlines()]
     if sol_lines[0] == NO_VALID_WALL:

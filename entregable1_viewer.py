@@ -3,7 +3,6 @@ import sys
 
 from algoritmia.datastructures.graphs import UndirectedGraph
 from algoritmia.viewers.labyrinth_viewer import LabyrinthViewer
-
 from entregable1 import read_data, process, NO_VALID_WALL
 
 if __name__ == '__main__':
@@ -22,12 +21,7 @@ if __name__ == '__main__':
         print(f'{NO_VALID_WALL}: THIS INSTANCE HAS NO SOLUTION')
         sys.exit(1)
 
-    lv = LabyrinthViewer(graph_copy,
-                         canvas_width=400,
-                         canvas_height=400,
-                         margin=10,
-                         wall_width=4)
-
+    lv = LabyrinthViewer(graph_copy, canvas_width=400, canvas_height=400, margin=10, wall_width=4)
     lv.set_input_point((0, 0))
     lv.set_output_point((rows - 1, cols - 1))
     lv.add_marked_cell(edge_to_add[0])

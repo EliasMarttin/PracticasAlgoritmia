@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 import sys
+from collections.abc import Iterator, Iterable
 from random import shuffle, seed
 from typing import TextIO, Optional
 
-from algoritmia.datastructures.graphs import UndirectedGraph
+import algoritmia.algorithms.shortest_path
+from algoritmia.algorithms.shortest_path import TPath
+from algoritmia.datastructures.graphs import UndirectedGraph, TVertex, IGraph, TEdge
 from algoritmia.datastructures.mergefindsets import MergeFindSet
 from algoritmia.datastructures.queues import Fifo
+from algoritmia.algorithms import traversers
+from algoritmia.algorithms import shortest_path
 
-Vertex = tuple[int, int]
-Edge = tuple[Vertex, Vertex]
+mapitaPabajo = {}
+mapitaParriba = {}
+TVertex = tuple[int, int]
+TEdge = tuple[TVertex, TVertex]
+Tpath = list[TVertex]
 
 NO_VALID_WALL = 'NO VALID WALL'
 
@@ -16,14 +24,14 @@ NO_VALID_WALL = 'NO VALID WALL'
 # Función ya implementada
 # Esta función utiliza un MFSet para crear un laberinto, pero le añade n aristas
 # adicionales que provocan que el laberinto tenga ciclos.
-def create_labyrinth(rows: int, cols: int, n: int, s: int) -> UndirectedGraph[Vertex]:
-    vertices: list[Vertex] = [(r, c) for r in range(rows) for c in range(cols)]
-    mfs: MergeFindSet[Vertex] = MergeFindSet((v,) for v in vertices)
-    edges: list[Edge] = [((r, c), (r + 1, c)) for r in range(rows - 1) for c in range(cols)]
+def create_labyrinth(rows: int, cols: int, n: int, s: int) -> UndirectedGraph[TVertex]:
+    vertices: list[TVertex] = [(r, c) for r in range(rows) for c in range(cols)]
+    mfs: MergeFindSet[TVertex] = MergeFindSet((v,) for v in vertices)
+    edges: list[TEdge] = [((r, c), (r + 1, c)) for r in range(rows - 1) for c in range(cols)]
     edges.extend([((r, c), (r, c + 1)) for r in range(rows) for c in range(cols - 1)])
     seed(s)
     shuffle(edges)
-    corridors: list[Edge] = []
+    corridors: list[TEdge] = []
     for (u, v) in edges:
         if mfs.find(u) != mfs.find(v):
             mfs.merge(u, v)
@@ -34,7 +42,7 @@ def create_labyrinth(rows: int, cols: int, n: int, s: int) -> UndirectedGraph[Ve
     return UndirectedGraph(E=corridors)
 
 
-def read_data(f: TextIO) -> tuple[UndirectedGraph[Vertex], int, int]:
+def read_data(f: TextIO) -> tuple[UndirectedGraph[TVertex], int, int]:
     rows = int(f.readline())
     cols = int(f.readline())
     n = int(f.readline())
@@ -43,35 +51,64 @@ def read_data(f: TextIO) -> tuple[UndirectedGraph[Vertex], int, int]:
     return grafo, rows, cols
 
 
-def process(lab: UndirectedGraph[Vertex], rows: int, cols: int) -> tuple[Optional[Edge], int, int]:
-    mapita = {'v_start':0}
+def process(lab: UndirectedGraph[TVertex], rows: int, cols: int) -> tuple[Optional[TEdge], int, int]:
+    v_inicial = (0, 0)
+    v_final = (rows-1, cols-1)
+    edges = bf_edge_traverserPabajo(lab, v_inicial)
+    edges2 = bf_edge_traverserParriba(lab, v_final)
+    path = shortest_path.path_recover(edges, v_final)
+    path2 = shortest_path.path_recover(edges2, v_inicial)
+    target = len(path)
 
-    lejitudDelInicio = 0# número de saltos que hemos dado hasta llegar a este nodo. y esto es lo qeu vamoa a guardar en el mapa
-    #lejituddelFinal = 0
-    v_start = (0, 0)
-    mapita[v_start] = lejitudDelInicio
-    v_final = (rows, cols)
+    return path2, len(path)-1, len(path)-1
+
+def bf_edge_traverserPabajo(graph: IGraph[TVertex], v_initial: TVertex) -> Iterator[TEdge]:
+
     queue = Fifo()
     seen = set()
-    queue.push(v_start)
-    seen.add(v_start)
-    listaCamino = []
+    mapitaPabajo[v_initial] = 0
+    queue.push((v_initial, v_initial))
+    seen.add(v_initial)
     while len(queue) > 0:
-        v = queue.pop()
-        listaCamino.append(v)
-    # Tenemos que guardar el camino
-    if v == v_final:
-        return v
-    for suc in lab.succs(v):
-        if suc not in seen:
-            lejitudDelInicio += lejitudDelInicio + 1
-            mapita[suc] = lejitudDelInicio
-            seen.add(suc)
-            queue.push(suc)
+        u, v = queue.pop()
+        z = mapitaPabajo[v]
+        yield u, v
+        for suc in graph.succs(v):
+            mapitaPabajo[suc] = mapitaPabajo[v] + 1
+            if suc not in seen:
+                queue.push((v, suc))
+                seen.add(suc)
+def bf_edge_traverserParriba(graph: IGraph[TVertex], v_initial: TVertex) -> Iterator[TEdge]:
+
+    queue = Fifo()
+    seen = set()
+    mapitaPabajo[v_initial] = 0
+    queue.push((v_initial, v_initial))
+    seen.add(v_initial)
+    while len(queue) > 0:
+        u, v = queue.pop()
+        z = mapitaPabajo[v]
+        print(u, v, z)
+        yield u, v
+        for suc in graph.succs(v):
+            mapitaParriba[suc] = mapitaParriba[v] + 1
+            if suc not in seen:
+                queue.push((v, suc))
+                seen.add(suc)
+def sentinel(graph: IGraph[TVertex], v_initial: TVertex) -> Optional [TEdge]:
+    # Esto es lo que tiene que buscar el mejor camino.
+    #primero tien que recorrernos el camino desde abajo?
+
+
     return None
 
-def show_results(edge_to_add: Optional[Edge], length_before: int, length_after: int):
-    raise NotImplementedError()
+
+
+
+def show_results(edge_to_add: Optional[TEdge], length_before: int, length_after: int):
+   print("NO VALID WALL")
+   print(length_before)
+   print(length_after)
 
 
 if __name__ == '__main__':
