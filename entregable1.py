@@ -141,10 +141,15 @@ def path_recover(edges: Iterable[TEdge], v: TVertex) -> TPath:
 
 
 def show_results(edge_to_add: Optional[TEdge], length_before: int, length_after: int):
-  #Esto se tiene que cambiar.
-   print("NO VALID WALL")
-   print(length_before)
-   print(length_after)
+    if edge_to_add is None:  # Si no hay arista es pq el camino xuliguay es sin bombardear siria
+        print(NO_VALID_WALL)
+    else:
+        vector1 = edge_to_add[0]
+        vector2 = edge_to_add[1]
+        # print(vector1[0], vector1[1], vector2[1], vector2[2])  # Se imprimen los elementos de cada arista
+
+    print(length_before)
+    print(length_after)
 
 
 if __name__ == '__main__':
