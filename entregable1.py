@@ -49,6 +49,7 @@ def read_data(f: TextIO) -> tuple[UndirectedGraph[TVertex], int, int]:
     grafo = create_labyrinth(rows, cols, n, s)
     return grafo, rows, cols
 
+
 def process(lab: UndirectedGraph[TVertex], rows: int, cols: int) -> tuple[Optional[TEdge], int, int]:
     v_inicial = (0, 0)
     v_final = (rows - 1, cols - 1)
@@ -56,11 +57,14 @@ def process(lab: UndirectedGraph[TVertex], rows: int, cols: int) -> tuple[Option
     bf_edge_traverserParriba(lab, v_final)
     minDist = mapitaPabajo[v_final]
     TEdge = None
-    print(len(mapitaParriba))
-    print(len(mapitaPabajo))
+    i =0
     for x in mapitaPabajo:
         r, c = x
         y = mapitaPabajo[x]
+        if i < 2000:
+            i += 1
+            print(TEdge,i)
+
         if r > 0 and y + mapitaParriba[(r - 1, c)] < minDist:
             minDist = y + mapitaParriba[(r - 1, c)]
             TEdge = ((r - 1, c), (r, c))
@@ -77,12 +81,11 @@ def process(lab: UndirectedGraph[TVertex], rows: int, cols: int) -> tuple[Option
             minDist = y + mapitaParriba[(r, c + 1)]
             TEdge = ((r, c), (r, c + 1))
 
-        print(TEdge)
+
     return TEdge, mapitaPabajo[v_final], minDist
 
 
 def bf_edge_traverserPabajo(graph: IGraph[TVertex], v_initial: TVertex):
-
     queue = Fifo()
     seen = set()
     mapitaPabajo[v_initial] = 0
@@ -143,13 +146,14 @@ def path_recover(edges: Iterable[TEdge], v: TVertex) -> TPath:
 def show_results(edge_to_add: Optional[TEdge], length_before: int, length_after: int):
     if edge_to_add is None:  # Si no hay arista es pq el camino xuliguay es sin bombardear siria
         print(NO_VALID_WALL)
+        print(length_before)
+        print(length_after)
     else:
         vector1 = edge_to_add[0]
         vector2 = edge_to_add[1]
-        # print(vector1[0], vector1[1], vector2[1], vector2[2])  # Se imprimen los elementos de cada arista
-
-    print(length_before)
-    print(length_after)
+        print(vector1[0], vector1[1], vector2[0], vector2[1])
+        print(length_before)
+        print(length_after)
 
 
 if __name__ == '__main__':
