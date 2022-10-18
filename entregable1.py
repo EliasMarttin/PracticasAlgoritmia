@@ -11,6 +11,7 @@ from algoritmia.datastructures.mergefindsets import MergeFindSet
 from algoritmia.datastructures.queues import Fifo
 from algoritmia.algorithms import traversers
 from algoritmia.algorithms import shortest_path
+
 mapitaPabajo = {}
 mapitaParriba = {}
 TVertex = tuple[int, int]
@@ -48,72 +49,78 @@ def read_data(f: TextIO) -> tuple[UndirectedGraph[TVertex], int, int]:
     grafo = create_labyrinth(rows, cols, n, s)
     return grafo, rows, cols
 
-
 def process(lab: UndirectedGraph[TVertex], rows: int, cols: int) -> tuple[Optional[TEdge], int, int]:
     v_inicial = (0, 0)
     v_final = (rows - 1, cols - 1)
-    pabajo = bf_edge_traverser(lab,v_inicial)
-    parriba = bf_edge_traverser(lab,v_final)
-    for x in pabajo:
-        print(mapitaPabajo[x])
+    bf_edge_traverserPabajo(lab, v_inicial)
+    bf_edge_traverserParriba(lab, v_final)
+    minDist = mapitaPabajo[v_final]
+    TEdge = None
+    print(len(mapitaParriba))
+    print(len(mapitaPabajo))
+    for x in mapitaPabajo:
+        r, c = x
+        y = mapitaPabajo[x]
+        if r > 0 and y + mapitaParriba[(r - 1, c)] < minDist:
+            minDist = y + mapitaParriba[(r - 1, c)]
+            TEdge = ((r - 1, c), (r, c))
 
-    for vector in mapitaPabajo:
-        r = vector[0]
-        c = vector[1]  # Con esto buscamos el vector al que saltaremos desde vector
-        if c + 1 < cols and mapitaPabajo[vector] + mapitaParriba[vector] < mapitaPabajo[v_final]:
-            mejorVector = ((r, c), (r, c + 1))  #
-            vectorbueno = vector
-            print("Esta es la arista buena /de momento")
-            # derecha --->(r,c) > (r+1,c)
-        if r - 1 >= 0 and mapitaPabajo[vector] + mapitaParriba[vector] < mapitaPabajo[v_final]:
-            mejorVector = ((r, c), (r + 1, c))
-            vectorbueno = vector
-            print("Esta es la arista buena /de momento")
-            # abajo ---> (r,c) > (r,c-1)
-        if c - 1 >= 0 and mapitaPabajo[vector] + mapitaParriba[vector] < mapitaPabajo[v_final]:
-            mejorVector = ((r, c), (r, c - 1))
-            vectorbueno = vector
-            print("Esta es la arista buena /de momento")
-            # izquierda --> (r,c) > (r-1,c)
-        if r + 1 < rows and mapitaPabajo[vector] + mapitaParriba[vector] < mapitaPabajo[v_final]:
-            mejorVector = ((r, c), (r - 1, c))
-            vectorbueno = vector
-            print("Esta es la arista buena /de momento")
+        if c > 0 and y + mapitaParriba[(r, c - 1)] < minDist:
+            minDist = y + mapitaParriba[(r, c - 1)]
+            TEdge = ((r, c - 1), (r, c))
 
-    return None, 0, 0
+        if r < rows - 1 and y + mapitaParriba[(r + 1, c)] < minDist:
+            minDist = y + mapitaParriba[(r + 1, c)]
+            TEdge = ((r, c), (r + 1, c))
 
-def bf_edge_traverser(graph: IGraph[TVertex], v_initial: TVertex) -> Iterator[TEdge]:
+        if c < cols - 1 and y + mapitaParriba[(r, c + 1)] < minDist:
+            minDist = y + mapitaParriba[(r, c + 1)]
+            TEdge = ((r, c), (r, c + 1))
+
+        print(TEdge)
+    return TEdge, mapitaPabajo[v_final], minDist
+
+
+def bf_edge_traverserPabajo(graph: IGraph[TVertex], v_initial: TVertex):
 
     queue = Fifo()
     seen = set()
     mapitaPabajo[v_initial] = 0
-    queue.push((v_initial, v_initial))
+    queue.push(v_initial)
     seen.add(v_initial)
     while len(queue) > 0:
-        u,v = queue.pop()
-        z = mapitaPabajo[v]
-        yield u,v, mapitaPabajo[v]
+        v = queue.pop()
         for suc in graph.succs(v):
-            mapitaPabajo[suc] = mapitaPabajo[v] + 1
             if suc not in seen:
-                queue.push((v, suc))
+                mapitaPabajo[suc] = mapitaPabajo[v] + 1
+                queue.push(suc)
                 seen.add(suc)
 
 
+def bf_edge_traverserParriba(graph: IGraph[TVertex], v_initial: TVertex):
+    queue = Fifo()
+    seen = set()
+    mapitaParriba[v_initial] = 1
+    queue.push(v_initial)
+    seen.add(v_initial)
+    while len(queue) > 0:
+        v = queue.pop()
+        for suc in graph.succs(v):
+            if suc not in seen:
+                mapitaParriba[suc] = mapitaParriba[v] + 1
+                queue.push(suc)
+                seen.add(suc)
 
 
-
-def sentinel(edges2: IGraph, rows: int, cols: int) -> Optional [TEdge]:
-
-
-    print(rows,cols)
-    print(mapitaPabajo[5,8])
-    print(mapitaParriba[5,9])
+def sentinel(edges2: IGraph, rows: int, cols: int):
+    print(rows, cols)
+    print(mapitaPabajo[5, 8])
+    print(mapitaParriba[5, 9])
     print("----------------------")
-    mejorArista = ((0, 0), (0, 0)) #---> TEdge = ((1,2),(1,3)) Esto es el resultado si es que es la mejor arista de todas
+    mejorArista = (
+        (0, 0), (0, 0))  # ---> TEdge = ((1,2),(1,3)) Esto es el resultado si es que es la mejor arista de todas
 
     return mejorArista
-
 
 
 def path_recover(edges: Iterable[TEdge], v: TVertex) -> TPath:
